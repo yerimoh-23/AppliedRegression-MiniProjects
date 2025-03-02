@@ -1,4 +1,4 @@
-# STAT-340 Applied Regression Methods Mini Projects
+# STAT-340 Applied Regression Methods
 
 ## Mini Project 1
 
@@ -40,6 +40,30 @@ The data in this problem is from World Health Organization (WHO) and the United 
 
 • `Schooling`: Number of years of Schooling (years)
 
-#### Part 2: Polynomial Regression
 
-The following R code loads in a data set with measurements of the tensile strength of paper (`tensile`, in units of pounds per square inch), and the percent of hardwood in the batch of pulp that was used to produce the paper (`hardwood`), for 19 diﬀerent samples of paper with diﬀerent percent hardwoods.
+
+## Mini Project 3
+
+The data used in this problem were found on the website “data.world”. They mention that the data were aggregatedfromanumberofsourcesincludingtheAmericanCommunitySurvey(census.gov), clinicaltrials.gov, and cancer.gov. The goal of this exercise is to build an Ordinary Least Squares multiple regression model to predict cancer mortality rates (variable `target_deathrate`) by United States counties. Each row in the dataset represents a county and those with missing data are excluded from the analysis.
+
+The original file contains many variables, including the name of the county. However, we will use the following variables to conduct the analysis:
+
+• response variable: `target_deathrate`
+
+• potential explanatory variables: `medincome`, `incidencerate`, `povertypercent`, `medianage`, `percentmarried`, `pctemployed16_over`, `pctbachdeg25_over`, `pctprivatecoverage`, `pctblack`, `pctmarriedhouseholds`
+
+
+
+## Mini Project 4
+
+#### Problem 1: Adapted from ISLR Example 4.6.
+
+Suppose we collect data for a group of students in a statistics class with variables
+
+• $$X1$$ = hours studied
+
+• $$X2$$ = undergrad GPA
+
+• $$Y$$ = receive an A in this class (“Yes” or “No”)
+
+We fit a logistic regression model and produce estimated coeﬃcients,$$\hat{\beta_0} = −6$$, $$\hat{\beta_1} = 0.05$$, and $$\hat{\beta_2} = 1$$
