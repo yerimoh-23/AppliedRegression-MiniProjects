@@ -40,6 +40,12 @@ The data in this problem is from World Health Organization (WHO) and the United 
 
 • `Schooling`: Number of years of Schooling (years)
 
+#### Part 2: Polynomial Regression
+
+The following R code loads in a data set with measurements of the tensile strength of paper (`tensile`, in units of pounds per square inch), and the percent of hardwood in the batch of pulp that was used to produce the paper (`hardwood`), for 19 diﬀerent samples of paper with diﬀerent percent hardwoods.
+
+References: R package for “Basic Statistics and Data Analysis” by Alan T. Arnholt: https://alanarnholt.github.io/BSDA/
+
 
 
 ## Mini Project 3
@@ -56,7 +62,7 @@ The original file contains many variables, including the name of the county. How
 
 ## Mini Project 4
 
-#### Problem 1: Adapted from ISLR Example 4.6.
+#### Part 1: Adapted from ISLR Example 4.6.
 
 Suppose we collect data for a group of students in a statistics class with variables
 
@@ -66,4 +72,18 @@ Suppose we collect data for a group of students in a statistics class with varia
 
 • $$Y$$ = receive an A in this class (“Yes” or “No”)
 
-We fit a logistic regression model and produce estimated coeﬃcients,$$\hat{\beta_0} = −6$$, $$\hat{\beta_1} = 0.05$$, and $$\hat{\beta_2} = 1$$
+We fit a logistic regression model and produce estimated coeﬃcients, $$\hat{\beta_0} = −6$$, $$\hat{\beta_1} = 0.05$$, and $$\hat{\beta_2} = 1$$
+
+#### Part 2: Metabolic syndrome
+
+Metabolic syndrome is a cluster of conditions that occur together, increasing your risk of heart disease, stroke and type 2 diabetes. These conditions include increased blood pressure, high blood sugar, excess body fat around the waist, and abnormal cholesterol or triglyceride levels. For the purpose of this assignment, we want to explore the association of hypertension status, weight and total cholesterol with the result of screening fasting blood sugar.
+
+We have the following variables:
+
+• `cat_fbs`: fasting blood sugar coded as `Normal`, `DM` (diabetes mellitus), and `IFG` (impaired fasting glucose)
+
+• `totchol`: Total Cholesterol (mmol/L)
+
+• `hptc`: Hypertension Status (Yes or No)
+
+• `weight`: Body weight measures in kilogram
