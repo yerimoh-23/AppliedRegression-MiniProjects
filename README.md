@@ -1,1 +1,2 @@
-# STAT-340-MiniProjects
+# STAT-340 Mini Projects
+### Applied Regression Methods
