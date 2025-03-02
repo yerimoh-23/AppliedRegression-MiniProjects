@@ -1,0 +1,459 @@
+---
+title: "Mini-Project 2"
+subtitle: "STAT-340 Applied Regression Methods"
+author: "Yerim Oh"
+output: 
+  pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Details
+
+### Due Date
+
+This assignment is due at 11:59 PM on the 9th of October.
+
+### Grading
+
+The problems will be graded for correctness. An emphasis will be placed on full explanations of your thought process. You usually won't need to write more than a few sentences for any given problem, but you should write complete sentences! Understanding and explaining the reasons behind your decisions is more important than making the "correct" decision.
+
+### Collaboration
+
+You are allowed to work with others on this assignment, but you must complete and submit your own write up. You should not copy large blocks of code or written text from another student.
+
+### Load Packages
+
+The following R code loads packages needed in this assignment.
+
+```{r, warning=FALSE, message=FALSE, echo  =FALSE}
+library(readxl)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(car)
+library(gridExtra)
+```
+
+\newpage
+
+## Problem 1: Validation of model assumptions
+
+"Overall mortality indicators (e.g., life expectancy at birth or survival to a given age) are important indicators of health status in a country. Because data on the incidence and prevalence of diseases are frequently unavailable, mortality rates are often used to identify vulnerable populations. And they are among the indicators most frequently used to compare socioeconomic development across countries.
+
+The data in this problem is from World Health Organization (WHO) and the United Nations Population Division and contain the following variables for 170 countries:
+
+-   `LifeExpectancy2015`: the life expectancy at birth in the year 2015 (number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life).
+-   `IncomeGroup`: the country's income group (low, lower-middle, upper-middle, and high)
+-   `Polio`: Polio immunization coverage among 1-year-olds (%)
+-   `IncomeCompositionResources`: Human Development Index in terms of income composition of resources (index ranging from 0 to 1)
+-   `Schooling`: Number of years of Schooling (years)
+
+We treat `LifeExpectancy2015` as the response variable and the reminder variables as the explanatory variables.
+
+```{r, warning= FALSE, message=FALSE, echo=FALSE}
+# Load the data
+LifeExp   <- read_excel("LifeExpectancy.xlsx")
+varkeep   <- c(4,12,19,20,5)
+LifeExp   <- LifeExp %>% 
+  dplyr::select(names(LifeExp)[varkeep]) %>% 
+  na.omit()
+```
+
+**Description**: <https://data.worldbank.org/indicator/SP.DYN.LE00.IN>
+
+**Data sources**: <https://www.kaggle.com/datasets/kumarajarshi/life-expectancy-who/data> and <https://data.worldbank.org/indicator/SP.DYN.LE00.IN>
+
+### a) Make a pair plot all the variables.
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+ggpairs(LifeExp)
+```
+
+### b) Develop a predictive model for the response variable `LifeExpectancy2015` by transforming the response and/or quantitative explanatory variables so that the associations between the transformed variables are approximately linear and the variance is approximately constant.
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+LifeExp_transformed <- LifeExp %>%
+  transmute(IncomeGroup = IncomeGroup,
+            sq_Polio = Polio^2,
+            IncomeCompositionResources = IncomeCompositionResources,
+            Schooling = Schooling,
+            LifeExpectancy2015 = LifeExpectancy2015)
+
+ggpairs(LifeExp_transformed)
+```
+
+Squared `Polio` is still left skewed and has low correlation and inconsistant variance with the response variable.
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+LifeExp_transformed <- LifeExp %>%
+  transmute(IncomeGroup = IncomeGroup,
+            exp_Polio = exp(Polio),
+            IncomeCompositionResources = IncomeCompositionResources,
+            Schooling = Schooling,
+            LifeExpectancy2015 = LifeExpectancy2015)
+
+ggpairs(LifeExp_transformed)
+```
+
+Now, `exp_Polio` is right skewed and still not consistent.
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+LifeExp_transformed <- LifeExp %>%
+  transmute(IncomeGroup = IncomeGroup,
+            Polio_6 = Polio^6,
+            IncomeCompositionResources = IncomeCompositionResources,
+            Schooling = Schooling,
+            LifeExpectancy2015 = LifeExpectancy2015)
+
+ggpairs(LifeExp_transformed)
+```
+
+-   I do not think additional transformations of `Polio` can simultaneously improve the relationships with `LifeExpectancy2015`. Although it is still left skewed, this transformation of the variable is more correlated than other transformations before and the variance is fairly constant across the range of values for the transformed `LifeExpextancy2015`.
+
+-   There seems to have a correlation between `IncomeCompositionResources` and `Schooling` which is really high. This could separate out the individual effects of collinear variables on the response.
+
+### c) Fit a model to your transformed data, and create a set of diagnostic plots, which should include plots (i) to (iv).
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+# fit a model to the transformed data
+lm_fit <- lm(LifeExpectancy2015 ~
+               IncomeGroup + Polio_6 + IncomeCompositionResources + Schooling,
+             data = LifeExp_transformed)
+
+LifeExp_transformed <- LifeExp_transformed %>%
+  mutate(resid = residuals(lm_fit))
+```
+
+#### (i) scatter plots of the residuals vs. each quantitative explanatory variable in the data set
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+# scatter plots of the residuals vs. each quantitative explanatory variable
+sp1 <- ggplot(data = LifeExp_transformed,
+              mapping = aes(x = resid, color = IncomeGroup))+
+  geom_density()
+
+sp2 <- ggplot(data = LifeExp_transformed,
+              mapping = aes(x = Polio_6, y = resid))+
+  geom_point()
+
+sp3 <- ggplot(data = LifeExp_transformed,
+              mapping = aes(x = IncomeCompositionResources, y = resid))+
+  geom_point()
+
+sp4 <- ggplot(data = LifeExp_transformed,
+              mapping = aes(x = Schooling, y = resid))+
+  geom_point()
+
+sp5 <- ggplot(data = LifeExp_transformed, mapping = aes(x = resid))+
+  geom_density()
+
+grid.arrange(sp1, sp2, sp3, sp4, sp5, ncol=2)
+```
+
+#### (ii) a scatter plot of the residuals against the fitted values
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+plot(fitted(lm_fit), LifeExp_transformed$resid)
+abline(0,0, col="blue")
+```
+
+#### (iii) a density plot or histogram of the residuals; and
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+plot(density(LifeExp_transformed$resid))
+abline(v=0, col="blue")
+```
+
+#### (iv) diagnostic plots of studentized residuals, and leverage.
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+car::influenceIndexPlot(lm_fit,
+                        vars = c("Studentized", "hat"))
+
+# leverage
+2 * length(coef(lm_fit)) / nrow(LifeExp_transformed)
+```
+
+Observation 50 and 87 show high leverage rates.
+
+```{r}
+LifeExp_transformed$high_leverage <- "No"
+LifeExp_transformed$high_leverage[c(50, 87)] <- "Yes"
+
+p1 <- ggplot(data = LifeExp_transformed,
+             mapping = aes(x = Polio_6, y = LifeExpectancy2015,
+                           color = high_leverage)) +
+  geom_point()
+
+p2 <- ggplot(data = LifeExp_transformed,
+             mapping = aes(x = IncomeCompositionResources, y = LifeExpectancy2015,
+                           color = high_leverage)) +
+  geom_point()
+
+p3 <- ggplot(data = LifeExp_transformed,
+             mapping = aes(x = Schooling, y = LifeExpectancy2015,
+                           color = high_leverage)) +
+  geom_point()
+
+grid.arrange(p1, p2, p3, ncol=2)
+```
+
+Not particularly worried.
+
+```{r}
+lm_fit_no_high_leverage <- lm(LifeExpectancy2015 ~
+                                IncomeGroup + Polio_6 +
+                                IncomeCompositionResources + Schooling,
+                              data = LifeExp_transformed %>%
+                                filter(high_leverage == "No"))
+summary(lm_fit)
+summary(lm_fit_no_high_leverage)
+```
+
+There are no high differences between the model fits with and without the high leverage observations. Nothing to worry about.
+
+##### If you see any serious issues, go back to step b) and try additional transformations.
+
+### d) Take a look at the summary output for your chosen model. Which variables would hypothesis tests suggest have a strong relationship with `LifeExpectancy2015`, the life expectancy at birth in 2015? Is this aligned with your interpretation of the pair plot of the (possibly transformed) variables? If not, what do you think might be going on?
+
+```{r}
+summary(lm_fit)
+```
+
+There is fairly strong evidence of an association between `Polio_6`, `IncomeCompositionResources` and `sq_LifeExpectancy2015`. We have to conduct an F test to investigate `IncomeGroup`:
+
+```{r}
+reduced_fit <- lm(LifeExpectancy2015 ~ Polio_6 +
+                    IncomeCompositionResources +
+                    Schooling,
+                  data = LifeExp_transformed)
+
+anova(reduced_fit, lm_fit)
+```
+
+A hypothesis test says `IncomeGroup` is important too. Therefore, the only variable a hypothesis test says we could drop is `Schooling`.
+
+### e) Check for multicollinearity among the explanatory variables. If you detect multicollinearity, please discuss how you would address it.
+
+There was a fairly strong evidence of multicollinearity between `IncomeCompositionResources` and `Schooling` when we looked at the pair plots.
+
+```{r}
+vif(lm_fit)
+```
+
+When the vif is higher than 5, there is severe correlation between a given predictor variable and other predictor variables in the model. This means that all of the explanatory variables except `Polio_6` is correlated with other predictor variables in the model.
+
+Since the high multicollinearity would make the result we got unreliable, we should drop the variable with the highest VIF, which is `IncomeCompositionResources` although it has the highest correlation with the explanatory variable.
+
+## New Model
+
+### new model without `IncomeCompositionResources`
+
+```{r}
+lm_new <- lm(LifeExpectancy2015 ~
+               IncomeGroup + Polio_6 + Schooling,
+             data = LifeExp_transformed)
+LifeExp_transformed <- LifeExp_transformed %>%
+  mutate(new_resid = residuals(lm_new))
+```
+
+### Plots
+
+```{r}
+# scatter plot residuals vs. each quantitative explanatory variable
+sp1 <- ggplot(data = LifeExp_transformed,
+              mapping = aes(x = new_resid, color = IncomeGroup))+
+  geom_density()
+
+sp2 <- ggplot(data = LifeExp_transformed,
+              mapping = aes(x = Polio_6, y = new_resid))+
+  geom_point()
+
+sp3 <- ggplot(data = LifeExp_transformed,
+              mapping = aes(x = Schooling, y = new_resid))+
+  geom_point()
+
+sp4 <- ggplot(data = LifeExp_transformed, mapping = aes(x = new_resid))+
+  geom_density()
+
+grid.arrange(sp1, sp2, sp3, sp4, ncol=2)
+
+# scatter plot against the fitted value
+plot(fitted(lm_new), LifeExp_transformed$new_resid)
+abline(0,0, col="blue")
+
+# density plot of the residuals
+plot(density(LifeExp_transformed$new_resid))
+abline(v=0, col="blue")
+
+# diagnostic plots of studentized residuals, and leverage
+car::influenceIndexPlot(lm_fit,
+                        vars = c("Studentized", "hat"))
+# leverage
+2 * length(coef(lm_fit)) / nrow(LifeExp_transformed)
+```
+
+Observation 50 and 87 show high leverage rates (these are the observations that is already picked from the previous model)
+
+```{r}
+lm_new_no_high_leverage <- lm(LifeExpectancy2015 ~
+                                IncomeGroup + Polio_6 + Schooling,
+                              data = LifeExp_transformed %>%
+                                filter(high_leverage == "No"))
+summary(lm_new)
+summary(lm_new_no_high_leverage)
+```
+
+There are no high differences between the model fits with and without the high leverage observations. Nothing to worry about.
+
+### Summary output for the new model
+
+```{r}
+summary(lm_new)
+```
+
+There is fairly strong evidence of an association between all explanatory variables, `IncomeGroup`, `Polio_6`, and `Schooling`, with the response variable, `LifeExpectancy2015`. So, this will be the final model we are going to observe.
+
+### f) Are there any outliers in the data? If so, are they considered influential, i.e. are the results of your statistical analysis significantly affected by the outliers, if any? How did you make this determination?
+
+```{r}
+# calculate leverage and studentized residuals
+LifeExp_transformed <- LifeExp_transformed %>%
+  mutate(obs_index = row_number(),
+         h = hatvalues(lm_new), # ask if need to exclude schooling and make new model
+         studres = rstudent(lm_new))
+
+lev_p <- ggplot(data = LifeExp_transformed,
+                mapping = aes(x = obs_index, y = h)) +
+  geom_point() +
+  geom_hline(yintercept = 2 * 4 / nrow(LifeExp_transformed), col = "green") +
+  ylim(0, 1) +
+  ggtitle("Leverage") +
+  theme_bw()
+
+studres_p <- ggplot(data = LifeExp_transformed,
+                    mapping = aes(x = obs_index, y = studres)) +
+  geom_point() +
+  geom_hline(yintercept = 3, col = "blue") +
+  geom_hline(yintercept = -3, col = "blue") +
+  ggtitle("Studentized Residuals") +
+  theme_bw()
+
+grid.arrange(lev_p, studres_p, ncol = 2)
+```
+
+By observing lot of observations above $2(p+1)/n$ line, there are a lot of potential outliers. Since there is one observation below -3 in the studentized residual plot, there is an influential outlier.
+
+### g) Plot the ordered residuals. Is there autocorrelation? Summarize and explain your findings.
+
+```{r}
+ggplot(data = LifeExp_transformed,
+              mapping = aes(x = obs_index, y = new_resid))+
+  geom_point() +
+  geom_hline(yintercept = 0, col = "blue")
+```
+
+Since we cannot observe the errors related to each other or see bunch of errors gathered, we can conclude that there is no autocorrelation.
+
+\newpage
+
+## Problem 2: Polynomial Regression
+
+The following R code loads in a data set with measurements of the tensile strength of paper (`tensile`, in units of pounds per square inch), and the percent of hardwood in the batch of pulp that was used to produce the paper (`hardwood`), for 19 different samples of paper with different percent hardwoods.
+
+```{r, echo = F, message=FALSE}
+paper <- read_excel("Hardwood.xlsx")
+```
+
+References: R package for "Basic Statistics and Data Analysis" by Alan T. Arnholt: <https://alanarnholt.github.io/BSDA/>
+
+### (a) Fit and summarize polynomial regression models of degree 2, and 3.
+
+For each of these candidate models, please produce:
+
+-   Output from the `summary` function that you could use to conduct relevant hypothesis tests
+-   A scatter plot of the data with the estimated curve overlaid on top. The estimated curve can be produced by adding this code to your ggplot:
+
+\vspace{-0pt}
+
+\begin{verbatim}
+     geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = TRUE))
+ \end{verbatim}
+
+\vspace{-12pt} \hspace{.8cm}
+
+where "2" can be replaced by the degree of the polynomial
+
+-   A plot of the residuals vs. fitted values
+
+-   The residual sum of squares (RSS). (You should also know how to find the $R^2$ and residual standard error (RSE) in the `summary` output.)
+
+    $$
+    RSE = \sqrt{\frac{1}{n-p-1}RSS} = \sqrt{\frac{1}{19-2-1}RSS} \\
+    RSS = RSE^2 \cdot(n-p-1)
+    $$
+
+#### Polynomial regression model of degree 2
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+model_d2 <- lm(tensile ~ poly(hardwood, 2, raw = TRUE),
+               data = paper)
+
+# summary of the model
+summary(model_d2)
+
+# scatter plot of the data with the estimated curve overlaid on top
+ggplot(data = paper, mapping = aes(x = hardwood, y = tensile))+
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = TRUE))
+
+# plot of the residuals vs. fitted values
+paper <- paper %>%
+  mutate(resid2 = residuals(model_d2))
+plot(fitted(model_d2), paper$resid2)
+abline(0,0, col="blue")
+
+# residual sum of squares (RSS)
+(RSS <- 4.42^2 * 16)
+```
+
+#### Polynomial regression model of degree 3
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+model_d3 <- lm(tensile ~ poly(hardwood, 3, raw = TRUE),
+               data = paper)
+
+# summary of the model
+summary(model_d3)
+
+# scatter plot of the data with the estimated curve overlaid on top
+ggplot(data = paper, mapping = aes(x = hardwood, y = tensile))+
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 3, raw = TRUE))
+
+# plot of the residuals vs. fitted values
+paper <- paper %>%
+  mutate(resid3 = residuals(model_d3))
+plot(fitted(model_d3), paper$resid3)
+abline(0,0, col="blue")
+
+# residual sum of squares (RSS)
+(RSS <- 2.585^2 * 15)
+```
+
+### (b) Based on your results above, which model do you prefer?
+
+Since we want the RSS to be as small as possible, we would prefer the model of degree 3. Also, the estimated curve of this model overlay more of the observations than the model of degree 2.
+
+### (c) Extract the model matrix from your degree 2 polynomial fit, and use it to find the coefficient estimates $\hat{\beta}$ and the fitted values $\hat{y}$ through direct matrix manipulations.
+
+```{r, warning= FALSE, message=FALSE, fig.align='left'}
+X <- model.matrix(model_d2)
+y <- matrix(paper$tensile)
+(beta_hat <- solve( t(X) %*% X) %*% t(X) %*% y) # beta_hat = (X'X)^-1 X'y
+(y_hat <- X %*% beta_hat) # y_hat = X * beta_hat
+```
