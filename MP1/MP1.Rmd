@@ -10,20 +10,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Details
-
-### Due Date
-
-This assignment is due at 11:59 PM on the 20th of September.
-
-### Grading
-
-The problems will be graded for correctness. An emphasis will be placed on full explanations of your thought process. You usually won't need to write more than a few sentences for any given problem, but you should write complete sentences! Understanding and explaining the reasons behind your decisions is more important than making the "correct" decision.
-
-### Collaboration
-
-You are allowed to work with others on this assignment, but you must complete and submit your own write up. You should not copy large blocks of code or written text from another student.
-
 ### Load Packages
 
 The following R code loads packages needed in this assignment.
@@ -35,9 +21,9 @@ library(ggplot2)
 library(GGally)
 ```
 
-\newpage
+\vspace{18pt}
 
-## Problem 1: White vinho verde from Portugal
+## White vinho verde from Portugal
 
 "The wine industry is investing in new technologies for both wine making and selling processes. Wine certification and quality assessment are key elements within this context. Certification prevents the illegal adulteration of wines (to safeguard human health) and assures quality for the wine market. Wine certification is generally assessed by physicochemical and sensory tests. Physicochemical laboratory tests routinely used to characterize wine include determination of density, alcohol or pH values, while sensory tests rely mainly on human experts."
 
@@ -56,6 +42,8 @@ wine    <- read_xlsx("wine.xlsx")
 varkeep <- names(wine)[c(3,4,5,7,11,8)]
 wine    <- wine %>% select(varkeep)
 ```
+
+**Data Source and Description**: Cortez, Paulo, et al. "Modeling wine preferences by data mining from physicochemical properties." Decision support systems 47.4 (2009): 547-553.
 
 \vspace{18pt}
 
@@ -260,7 +248,3 @@ summary(model_fit)
 -   p-value = 0.00108
 
 We have a strong evidence against the hypothesis that `chlorides` is not related to `density`.
-
-\vspace{18pt}
-
-**Data Source and Description**: Cortez, Paulo, et al. "Modeling wine preferences by data mining from physicochemical properties." Decision support systems 47.4 (2009): 547-553.
