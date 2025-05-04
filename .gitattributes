@@ -1,3 +1,4 @@
 MP1/** linguist-documentation=false
 MP1/** linguist-vendored=false
 *.Rmd linguist-detectable=true
+*.Rmd linguist-language=R
